@@ -3,7 +3,6 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store';
-import { LoadingScreen } from '../shared/LoadingScreen';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,13 +17,8 @@ export function ProtectedRoute({
   requirePlan,
   redirectTo = '/login',
 }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const location = useLocation();
-
-  // Show loading while checking auth state
-  if (isLoading) {
-    return <LoadingScreen message="Verificando autenticação..." />;
-  }
 
   // Redirect to login if not authenticated
   if (requireAuth && !isAuthenticated) {
@@ -41,12 +35,8 @@ export function ProtectedRoute({
 
 // Redirect authenticated users away from auth pages
 export function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const location = useLocation();
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
 
   // Redirect to dashboard if already authenticated
   if (isAuthenticated) {
