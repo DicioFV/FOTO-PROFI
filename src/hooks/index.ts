@@ -1,8 +1,6 @@
 // src/hooks/index.ts
 // CINEVISION AI — CUSTOM HOOKS
 
-export { useAuth } from './useAuth';
-
 import { useState, useCallback, useEffect } from 'react';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━
