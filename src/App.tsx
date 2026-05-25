@@ -4,10 +4,20 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { Header, Footer, Sidebar } from './components/layout';
 import { ToastProvider, TooltipProvider } from './components/ui';
+import { ProtectedRoute, PublicOnlyRoute } from './components/auth';
 import { useAuthStore } from './store';
 
 // Pages
-import { HomePage, DashboardPage, UploadPage, EditorPage, StylesPage } from './pages';
+import { 
+  HomePage, 
+  DashboardPage, 
+  UploadPage, 
+  EditorPage, 
+  StylesPage,
+  LoginPage,
+  RegisterPage,
+  ForgotPasswordPage,
+} from './pages';
 
 // Public Layout (with header and footer)
 function PublicLayout() {
@@ -56,7 +66,7 @@ function PlaceholderPage({ title }: { title: string }) {
     <div className="min-h-screen bg-[#050507] flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-white mb-4">{title}</h1>
-        <p className="text-gray-400">Em desenvolvimento - Fase 02</p>
+        <p className="text-gray-400">Em desenvolvimento</p>
       </div>
     </div>
   );
@@ -68,6 +78,23 @@ function App() {
       <ToastProvider>
         <BrowserRouter>
           <Routes>
+            {/* Auth Routes (Public Only) */}
+            <Route path="login" element={
+              <PublicOnlyRoute>
+                <LoginPage />
+              </PublicOnlyRoute>
+            } />
+            <Route path="register" element={
+              <PublicOnlyRoute>
+                <RegisterPage />
+              </PublicOnlyRoute>
+            } />
+            <Route path="forgot-password" element={
+              <PublicOnlyRoute>
+                <ForgotPasswordPage />
+              </PublicOnlyRoute>
+            } />
+
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
               <Route index element={<HomePage />} />
@@ -75,12 +102,16 @@ function App() {
               <Route path="pricing" element={<PlaceholderPage title="Planos" />} />
               <Route path="gallery" element={<PlaceholderPage title="Galeria" />} />
               <Route path="about" element={<PlaceholderPage title="Sobre" />} />
-              <Route path="login" element={<PlaceholderPage title="Login" />} />
-              <Route path="register" element={<PlaceholderPage title="Criar Conta" />} />
+              <Route path="terms" element={<PlaceholderPage title="Termos de Uso" />} />
+              <Route path="privacy" element={<PlaceholderPage title="Política de Privacidade" />} />
             </Route>
             
-            {/* Dashboard Routes */}
-            <Route element={<DashboardLayout />}>
+            {/* Protected Dashboard Routes */}
+            <Route element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }>
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="upload" element={<UploadPage />} />
               <Route path="editor" element={<EditorPage />} />
