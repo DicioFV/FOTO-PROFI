@@ -1,195 +1,223 @@
 // src/pages/DashboardPage.tsx
 // CINEVISION AI — DASHBOARD PAGE
 
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  Upload, Sparkles, History, Download, TrendingUp,
-  ArrowRight, Clock, Image, Zap
-} from 'lucide-react';
-import { Button, Card, CardHeader, CardContent, Badge, Progress } from '../components/ui';
+import { useMemo } from 'react';
+import { Sparkles, Image, Zap, Clock } from 'lucide-react';
+import { 
+  StatsCard, 
+  WelcomeBanner, 
+  TipBanner,
+  QuickActions, 
+  CreditsWidget, 
+  ActivityFeed,
+  RecentGenerations,
+  UsageChart,
+  WeeklyActivityChart,
+} from '../components/dashboard';
+import { Card, CardHeader, CardContent } from '../components/ui';
 import { useAuthStore } from '../store';
+import type { Activity } from '../components/dashboard';
 
-const quickActions = [
-  { href: '/upload', label: 'Nova Foto', icon: Upload, color: 'amber' },
-  { href: '/styles', label: 'Estilos', icon: Sparkles, color: 'violet' },
-  { href: '/history', label: 'Histórico', icon: History, color: 'blue' },
-  { href: '/exports', label: 'Downloads', icon: Download, color: 'emerald' },
+// Mock data
+const mockActivities: Activity[] = [
+  {
+    id: '1',
+    type: 'generation',
+    title: 'Hollywood Portrait',
+    description: 'Estilo cinematográfico',
+    timestamp: new Date(Date.now() - 5 * 60 * 1000),
+    status: 'completed',
+    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+  },
+  {
+    id: '2',
+    type: 'generation',
+    title: 'YouTube Thumbnail',
+    description: 'Estilo redes sociais',
+    timestamp: new Date(Date.now() - 30 * 60 * 1000),
+    status: 'completed',
+    imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+  },
+  {
+    id: '3',
+    type: 'credit',
+    title: 'Créditos adicionados',
+    description: '+200 créditos (Plano Pro)',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    status: 'completed',
+  },
+  {
+    id: '4',
+    type: 'generation',
+    title: 'LinkedIn Pro',
+    description: 'Estilo profissional',
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    status: 'completed',
+    imageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100',
+  },
 ];
 
-const recentGenerations = [
-  { id: 1, style: 'Hollywood Portrait', time: '2 min atrás', status: 'completed' },
-  { id: 2, style: 'YouTube Thumbnail', time: '15 min atrás', status: 'completed' },
-  { id: 3, style: 'LinkedIn Pro', time: '1 hora atrás', status: 'completed' },
+const mockGenerations = [
+  {
+    id: '1',
+    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    styleName: 'Hollywood Portrait',
+    createdAt: new Date(Date.now() - 5 * 60 * 1000),
+    status: 'completed' as const,
+  },
+  {
+    id: '2',
+    imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    styleName: 'YouTube Thumbnail',
+    createdAt: new Date(Date.now() - 30 * 60 * 1000),
+    status: 'completed' as const,
+  },
+  {
+    id: '3',
+    imageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    styleName: 'LinkedIn Pro',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    status: 'completed' as const,
+  },
+  {
+    id: '4',
+    imageUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    styleName: 'Cyberpunk Neon',
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    status: 'completed' as const,
+  },
+  {
+    id: '5',
+    imageUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400',
+    styleName: 'Film Noir',
+    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+    status: 'completed' as const,
+  },
+  {
+    id: '6',
+    imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
+    styleName: 'Corporate Headshot',
+    createdAt: new Date(Date.now() - 72 * 60 * 60 * 1000),
+    status: 'completed' as const,
+  },
 ];
+
+const usageData = [
+  { label: 'Cinematográfico', value: 45 },
+  { label: 'Redes Sociais', value: 32 },
+  { label: 'Profissional', value: 18 },
+  { label: 'Artístico', value: 12 },
+];
+
+const weeklyData = [3, 5, 2, 8, 4, 6, 3];
 
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user);
-  const credits = user?.credits ?? 50;
+  
+  const credits = user?.credits ?? 150;
+  const maxCredits = 200;
+  const plan = user?.plan ?? 'pro';
+  const isNewUser = user?.onboarded === false;
+
+  const stats = useMemo(() => [
+    {
+      title: 'Créditos Disponíveis',
+      value: credits,
+      subtitle: `de ${maxCredits} este mês`,
+      icon: <Sparkles className="w-6 h-6" />,
+      variant: 'gold' as const,
+    },
+    {
+      title: 'Gerações Este Mês',
+      value: 47,
+      icon: <Image className="w-6 h-6" />,
+      variant: 'violet' as const,
+      trend: { value: 12, label: 'vs mês passado', isPositive: true },
+    },
+    {
+      title: 'Tempo Economizado',
+      value: '3.5h',
+      subtitle: 'comparado a edição manual',
+      icon: <Clock className="w-6 h-6" />,
+      variant: 'emerald' as const,
+    },
+    {
+      title: 'Estilos Usados',
+      value: 12,
+      subtitle: 'de 500+ disponíveis',
+      icon: <Zap className="w-6 h-6" />,
+      variant: 'blue' as const,
+    },
+  ], [credits, maxCredits]);
 
   return (
     <div className="min-h-screen bg-[#050507] pt-16 pb-20">
       <div className="pl-64">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-3xl font-bold text-white mb-2"
-            >
-              Olá, {user?.fullName?.split(' ')[0] || 'Criador'} 👋
-            </motion.h1>
-            <p className="text-gray-400">
-              Bem-vindo ao seu estúdio criativo. O que vamos criar hoje?
-            </p>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Welcome Banner */}
+          <WelcomeBanner 
+            userName={user?.fullName?.split(' ')[0] || 'Criador'} 
+            isNewUser={isNewUser}
+            hasCompletedOnboarding={user?.onboarded ?? true}
+          />
+
+          {/* Tip Banner */}
+          <TipBanner className="mb-8" />
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {stats.map((stat, index) => (
+              <StatsCard key={index} {...stat} />
+            ))}
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <motion.div
-                  key={action.href}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link to={action.href}>
-                    <Card
-                      hover
-                      className={`p-5 group cursor-pointer border-${action.color}-500/20 hover:border-${action.color}-500/40`}
-                    >
-                      <div className={`w-12 h-12 rounded-xl bg-${action.color}-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                        <Icon className={`w-6 h-6 text-${action.color}-400`} />
-                      </div>
-                      <h3 className="font-semibold text-white group-hover:text-amber-400 transition-colors">
-                        {action.label}
-                      </h3>
-                    </Card>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
+          <QuickActions className="mb-8" />
 
-          {/* Main Grid */}
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Credits & Usage */}
-            <Card variant="gradient" padding="lg" className="lg:col-span-2">
-              <CardHeader
-                title="Uso Este Mês"
-                description="Acompanhe seus créditos e gerações"
-                action={
-                  <Link to="/credits">
-                    <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                      Ver Detalhes
-                    </Button>
-                  </Link>
-                }
+          {/* Main Content Grid */}
+          <div className="grid lg:grid-cols-3 gap-6 mb-8">
+            {/* Left Column - Recent Generations */}
+            <div className="lg:col-span-2">
+              <RecentGenerations 
+                generations={mockGenerations}
+                onView={(id) => console.log('View', id)}
+                onDownload={(id) => console.log('Download', id)}
+                onDelete={(id) => console.log('Delete', id)}
               />
-              <CardContent>
-                <div className="grid sm:grid-cols-3 gap-6">
-                  {/* Credits */}
-                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span className="text-sm text-gray-400">Créditos</span>
-                    </div>
-                    <div className="text-3xl font-bold text-white mb-1">{credits}</div>
-                    <Progress value={credits} max={200} variant="gold" size="sm" />
-                    <p className="text-xs text-gray-500 mt-2">de 200 este mês</p>
-                  </div>
+            </div>
 
-                  {/* Generations */}
-                  <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Image className="w-4 h-4 text-violet-400" />
-                      <span className="text-sm text-gray-400">Gerações</span>
-                    </div>
-                    <div className="text-3xl font-bold text-white mb-1">47</div>
-                    <div className="flex items-center gap-1 text-emerald-400 text-sm">
-                      <TrendingUp className="w-4 h-4" />
-                      +12% vs mês passado
-                    </div>
-                  </div>
+            {/* Right Column - Credits Widget */}
+            <div className="space-y-6">
+              <CreditsWidget
+                credits={credits}
+                maxCredits={maxCredits}
+                plan={plan}
+                nextReset={new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)}
+              />
 
-                  {/* Time Saved */}
-                  <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="w-4 h-4 text-emerald-400" />
-                      <span className="text-sm text-gray-400">Tempo Salvo</span>
-                    </div>
-                    <div className="text-3xl font-bold text-white mb-1">3.5h</div>
-                    <p className="text-xs text-gray-500">comparado a edição manual</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Generate */}
-            <Card variant="glass" padding="lg">
-              <CardHeader title="Geração Rápida" />
-              <CardContent>
-                <div className="space-y-4">
-                  <Link to="/upload" className="block">
-                    <div className="aspect-square rounded-xl border-2 border-dashed border-white/20 hover:border-amber-500/50 transition-colors flex flex-col items-center justify-center gap-3 cursor-pointer group">
-                      <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Upload className="w-8 h-8 text-amber-400" />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-medium text-white">Upload de Foto</p>
-                        <p className="text-sm text-gray-500">ou arraste aqui</p>
-                      </div>
-                    </div>
-                  </Link>
-                  <Button variant="primary" className="w-full">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Nova Geração
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              {/* Weekly Activity Mini Chart */}
+              <Card>
+                <CardHeader title="Atividade Semanal" />
+                <CardContent>
+                  <WeeklyActivityChart data={weeklyData} />
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Recent Activity */}
-          <Card variant="default" padding="lg" className="mt-6">
-            <CardHeader
-              title="Atividade Recente"
-              action={
-                <Link to="/history">
-                  <Button variant="ghost" size="sm">
-                    Ver Tudo
-                  </Button>
-                </Link>
-              }
+          {/* Bottom Row */}
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Activity Feed */}
+            <ActivityFeed activities={mockActivities} />
+
+            {/* Usage Chart */}
+            <UsageChart 
+              data={usageData} 
+              title="Uso por Categoria"
+              description="Distribuição das suas gerações"
+              type="horizontal"
             />
-            <CardContent>
-              <div className="divide-y divide-white/10">
-                {recentGenerations.map((gen) => (
-                  <div key={gen.id} className="py-4 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-violet-500/20 flex items-center justify-center">
-                      <Image className="w-6 h-6 text-amber-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-white">{gen.style}</p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        {gen.time}
-                      </div>
-                    </div>
-                    <Badge variant="success" size="sm">
-                      Concluído
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      Ver
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
     </div>
